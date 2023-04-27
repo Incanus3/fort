@@ -49,11 +49,17 @@ defmodule FortWeb.GameLive do
         <% :army -> %>
           <.army />
       <% end %>
+    </div>
+    """
+  end
 
-      <div class="my-4">
-        <h3 class="text-lg font-semibold">debug</h3>
-        <pre class="my-2"><%= inspect(@game, pretty: true) %></pre>
-      </div>
+  attr :it, :any, required: true
+
+  def debug(assigns) do
+    ~H"""
+    <div class="my-4">
+      <h3 class="text-lg font-semibold">debug</h3>
+      <pre class="my-2"><%= inspect(@it, pretty: true) %></pre>
     </div>
     """
   end
@@ -62,7 +68,14 @@ defmodule FortWeb.GameLive do
 
   def resources(assigns) do
     ~H"""
-    resources: <pre><%= inspect(@resources, pretty: true) %></pre>
+    <div
+      id="resources"
+      class="w-[50vw] min-w-max flex flex-row justify-between gap-2 px-4 py-3 rounded-lg bg-zinc-100"
+    >
+      <div :for={{resource_type, amount} <- @resources}>
+        <%= resource_type %>: <%= amount %>
+      </div>
+    </div>
     """
   end
 
@@ -70,7 +83,11 @@ defmodule FortWeb.GameLive do
 
   def buildings(assigns) do
     ~H"""
-    buildings: <pre><%= inspect(@buildings, pretty: true) %></pre>
+    <div id="buildings" class="flex flex-col gap-2">
+      <div :for={{building_type, amount} <- @buildings}>
+        <%= building_type %>: <%= amount %>
+      </div>
+    </div>
     """
   end
 
