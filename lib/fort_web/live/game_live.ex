@@ -17,6 +17,11 @@ defmodule FortWeb.GameLive do
   end
 
   @impl true
+  def handle_params(_params, uri, socket) do
+    handle_params(%{"page" => "buildings"}, uri, socket)
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="flex flex-row">
