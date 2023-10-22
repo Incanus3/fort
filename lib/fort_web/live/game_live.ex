@@ -22,6 +22,12 @@ defmodule FortWeb.GameLive do
   end
 
   @impl true
+  def handle_event("build", %{"building" => building}, socket) do
+    # TODO: build the building
+    {:noreply, socket}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="flex flex-row">
@@ -34,7 +40,7 @@ defmodule FortWeb.GameLive do
   attr :active_page, :atom, required: true
   attr :game, Game, required: true
 
-  def main(assigns) do
+  defp main(assigns) do
     # - we could use TagEngine.component() to render target component dynamically,
     #   but it has a lot of params, so the call is not nicer
     # - in the future, these will probably be LiveComponents, so we'll be able to use the
@@ -58,24 +64,13 @@ defmodule FortWeb.GameLive do
     """
   end
 
-  attr :it, :any, required: true
-
-  def debug(assigns) do
-    ~H"""
-    <div class="my-4">
-      <h3 class="text-lg font-semibold">debug</h3>
-      <pre class="my-2"><%= inspect(@it, pretty: true) %></pre>
-    </div>
-    """
-  end
-
   attr :resources, :map, required: true
 
   def resources(assigns) do
     ~H"""
     <div
       id="resources"
-      class="w-[50vw] min-w-max flex flex-row justify-between gap-2 px-4 py-3 rounded-lg bg-zinc-100"
+      class="w-[50vw] min-w-max flex flex-row justify-between gap-2 px-4 py-3 rounded-lg font-semibold text-accent bg-base-200"
     >
       <div :for={{resource_type, amount} <- @resources}>
         <%= resource_type %>: <%= amount %>
@@ -88,17 +83,25 @@ defmodule FortWeb.GameLive do
 
   def buildings(assigns) do
     ~H"""
-    <div id="buildings" class="flex flex-col gap-2">
-      <div :for={{building_type, amount} <- @buildings}>
-        <%= building_type %>: <%= amount %>
-      </div>
-    </div>
+    <table id="buildings" class="table table-auto table-zebra">
+      <tbody>
+        <tr :for={{building_type, amount} <- @buildings}>
+          <td class="capitalize"><%= building_type %></td>
+          <td class="text-right"><%= amount %></td>
+          <td class="text-right">
+            <button class="btn btn-xs btn-outline btn-primary" phx-click="build" phx-value-building={building_type}>build</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
     """
   end
 
   def upgrades(assigns) do
     ~H"""
-    Tady budou upgrady
+    <div id="upgrades">
+      <p class="mb-2">Tady budou upgrady</p>
+    </div>
     """
   end
 
@@ -112,16 +115,16 @@ defmodule FortWeb.GameLive do
 
   def sidebar(assigns) do
     ~H"""
-    <aside class="w-64 p-6 border-r">
+    <aside class="w-64 p-6 border-r border-accent">
       <nav class="space-y-8 text-sm">
         <div class="space-y-2">
           <h2 class="text-sm font-semibold tracking-widest uppercase dark:text-gray-400">
             Getting Started
           </h2>
           <div class="flex flex-col space-y-1">
-            <a href="#">Installation</a>
-            <a href="#">Plugins</a>
-            <a href="#">Migrations</a>
+            <a href="#" class="hover:link-accent">Installation</a>
+            <a href="#" class="hover:link-accent">Plugins</a>
+            <a href="#" class="hover:link-accent">Migrations</a>
           </div>
         </div>
 
@@ -143,11 +146,43 @@ defmodule FortWeb.GameLive do
   attr :active_page, :atom, required: true
 
   def nav(assigns) do
-    class = if assigns.page == assigns.active_page, do: "font-semibold", else: ""
+    base_class = "hover:link-accent"
+
+    class =
+      if assigns.page == assigns.active_page, do: "#{base_class} font-semibold", else: base_class
+
     assigns = assign(assigns, :class, class)
 
     ~H"""
     <.link patch={~p"/game/#{@page}"} class={@class}><%= @label %></.link>
     """
   end
+
+  attr :it, :any, required: true
+
+  def debug(assigns) do
+    ~H"""
+    <div class="my-4">
+      <h3 class="text-lg font-semibold">debug</h3>
+      <pre class="my-2"><%= inspect(@it, pretty: true) %></pre>
+    </div>
+    """
+  end
+
+  # attr :label, :string, required: true
+  #
+  # just for reference
+  # defp tailwind_button(assigns) do
+  #   ~H"""
+  #   <button
+  #     class="bg-blue-600 px-4 py-3 text-center text-sm font-semibold inline-block
+  #     text-white cursor-pointer uppercase transition duration-200 ease-in-out
+  #     rounded-md hover:bg-blue-600 focus-visible:outline-none
+  #     focus-visible:ring-2 focus-visible:ring-blue-600
+  #     focus-visible:ring-offset-2 active:scale-95"
+  #   >
+  #     <%= @label %>
+  #   </button>
+  #   """
+  # end
 end

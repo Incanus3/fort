@@ -11,6 +11,7 @@ module.exports = {
     "../lib/*_web.ex",
     "../lib/*_web/**/*.*ex"
   ],
+
   theme: {
     extend: {
       colors: {
@@ -18,8 +19,12 @@ module.exports = {
       }
     },
   },
+
   plugins: [
-    require("@tailwindcss/forms"),
+    require("daisyui"),
+    require("@tailwindcss/typography"),
+    // require("@tailwindcss/forms"),
+
     // Allows prefixing tailwind classes with LiveView classes to add rules
     // only when LiveView classes are applied, for example:
     //
@@ -41,12 +46,14 @@ module.exports = {
         ["-solid", "/24/solid"],
         ["-mini", "/20/solid"]
       ]
+
       icons.forEach(([suffix, dir]) => {
         fs.readdirSync(path.join(iconsDir, dir)).map(file => {
           let name = path.basename(file, ".svg") + suffix
           values[name] = {name, fullPath: path.join(iconsDir, dir, file)}
         })
       })
+
       matchComponents({
         "hero": ({name, fullPath}) => {
           let content = fs.readFileSync(fullPath).toString().replace(/\r?\n|\r/g, "")
@@ -63,5 +70,10 @@ module.exports = {
         }
       }, {values})
     })
-  ]
+  ],
+
+  daisyui: {
+    logs: false,
+    themes: ["light", "dark"],
+  },
 }
