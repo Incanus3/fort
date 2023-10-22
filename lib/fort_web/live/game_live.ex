@@ -24,7 +24,9 @@ defmodule FortWeb.GameLive do
   @impl true
   def handle_event("build", %{"building" => building}, socket) do
     # TODO: build the building
-    {:noreply, socket}
+    {:noreply,
+     socket
+     |> assign(:game, Game.build(socket.assigns.game, String.to_existing_atom(building)))}
   end
 
   @impl true
