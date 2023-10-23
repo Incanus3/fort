@@ -1,4 +1,5 @@
 defmodule FortWeb.GameLive do
+  alias Fort.Game.Resource
   alias Fort.Game
   alias Fort.Game.Building
   alias Fort.Ticker
@@ -26,9 +27,12 @@ defmodule FortWeb.GameLive do
 
   @impl true
   def handle_event("build", %{"building" => building}, socket) do
+    building_type = String.to_existing_atom(building)
+    {:ok, updated_game} = Game.build(socket.assigns.game, building_type)
+
     {:noreply,
      socket
-     |> assign(:game, Game.build(socket.assigns.game, String.to_existing_atom(building)))}
+     |> assign(:game, updated_game)}
   end
 
   @impl true
@@ -60,7 +64,7 @@ defmodule FortWeb.GameLive do
     ~H"""
     <div class="p-6">
       <div class="mb-6">
-        <.resources resources={@game.resources} />
+        <.resources game={@game} />
       </div>
 
       <%= case @active_page do %>
@@ -75,7 +79,7 @@ defmodule FortWeb.GameLive do
     """
   end
 
-  attr :resources, :map, required: true
+  attr :game, Game, required: true
 
   defp resources(assigns) do
     ~H"""
@@ -83,8 +87,9 @@ defmodule FortWeb.GameLive do
       id="resources"
       class="w-[50vw] min-w-max flex flex-row justify-between gap-2 px-4 py-3 rounded-lg font-semibold text-accent bg-base-200"
     >
-      <div :for={{resource_type, amount} <- @resources}>
-        <%= resource_type %>: <%= amount %>
+      <div :for={resource_type <- Resource.types()}>
+        <%= resource_type |> Resource.name_for_type() |> String.capitalize() %>:
+        <%= Game.resource_amount(@game, resource_type) %>
       </div>
     </div>
     """
@@ -95,17 +100,39 @@ defmodule FortWeb.GameLive do
   defp buildings(assigns) do
     ~H"""
     <table id="buildings" class="table table-auto table-zebra">
+      <thead>
+        <th>Type</th>
+        <th class="text-center">Built</th>
+        <th class="text-center">Cost</th>
+        <th class="text-center">Actions</th>
+      </thead>
       <tbody>
         <tr :for={building_type <- Building.types()}>
+          <% level = Game.building_level(@game, building_type) %>
+          <% cost = Building.cost_of(building_type, level) %>
+          <% can_afford = Game.have_resources(@game, cost) %>
+
           <td><%= building_type |> Building.name_for_type() |> String.capitalize() %></td>
-          <td class="text-right"><%= Game.building_count(@game, building_type) %></td>
-          <td class="text-right">
-            <button class="btn btn-xs btn-outline btn-primary" phx-click="build" phx-value-building={building_type}>build</button>
+          <td class="text-center"><%= level %></td>
+          <td class="text-center"><%= cost_string(cost) %></td>
+          <td class="text-center">
+          <button
+            class="btn btn-xs btn-outline btn-primary"
+            disabled={not can_afford}
+            phx-click="build" phx-value-building={building_type}
+          >build</button>
           </td>
         </tr>
       </tbody>
     </table>
     """
+  end
+
+  defp cost_string(cost) do
+    Enum.map(cost, fn {resource_type, amount} ->
+      "#{amount} #{resource_type |> Atom.to_string() |> String.first()}"
+    end)
+    |> Enum.join(", ")
   end
 
   defp upgrades(assigns) do
